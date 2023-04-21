@@ -1,0 +1,54 @@
+/*Anyone knows how to implement this code as an effect
+/
+
+struct key_color
+{ 
+    int h; 
+    int last_hit; 
+}; 
+static struct key_color color_map[BACKLIGHT_LED_COUNT];
+
+void populate_map(void) 
+{
+	srand(osalOsGetSystemTimeX());
+	for (int i = 0; i < BACKLIGHT_LED_COUNT; i++) 
+	{
+	    int h = rand() % 256;
+	    color_map[i].h = h;
+	    color_map[i].last_hit = 255;
+	}
+}
+
+void backlight_effect_user(void) 
+{
+    srand(osalOsGetSystemTimeX());
+    for (int i = 0; i < BACKLIGHT_LED_COUNT; i++) 
+    {
+        uint16_t hit_time = g_key_hit[i];
+
+        hit_time *= 13;
+        if (hit_time > 255) 
+        {
+            hit_time = 255;
+        }
+        else
+        {
+            if (color_map[i].last_hit > hit_time)
+            {
+                color_map[i].h = rand() % 256;
+            }
+        }
+        color_map[i].last_hit = hit_time;
+        
+        uint8_t brightness = 255 - hit_time;
+
+        HSV hsv = { .h = color_map[i].h, .s = 255, .v = brightness };
+        RGB rgb = hsv_to_rgb(hsv);
+        backlight_set_color(i, rgb.r, rgb.g, rgb.b);
+  }
+}
+
+void matrix_init_user() {
+    uint8_t backlight_config[2] = { id_effect, 11 };
+    backlight_config_set_value(backlight_config);
+}
